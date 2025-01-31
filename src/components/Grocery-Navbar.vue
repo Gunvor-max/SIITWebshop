@@ -3,6 +3,7 @@
     <div class="navbar-brand" @click="goToProducts">My Grocery Store</div>
     <div class="navbar-login">
       <button class="login-button" @click="handleAuth">{{ isLoggedIn ? 'Logout' : 'Login' }}</button>
+      <button class="register-button" @click="goToRegister">Register</button>
     </div>
   </nav>
 </template>
@@ -36,6 +37,9 @@ export default {
     goToProducts() {
       this.$router.push('/');
     },
+    goToRegister() {
+      this.$router.push('/register');
+    },
     logout() {
       localStorage.removeItem('accessToken');
       this.isLoggedIn = false;
@@ -65,7 +69,8 @@ export default {
   cursor: pointer;
 }
 
-.navbar-login .login-button {
+.navbar-login .login-button,
+.navbar-login .register-button {
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -74,7 +79,8 @@ export default {
   border-radius: 4px;
 }
 
-.navbar-login .login-button:hover {
+.navbar-login .login-button:hover,
+.navbar-login .register-button:hover {
   background-color: #45a049;
 }
 </style>

@@ -53,25 +53,51 @@
       async register() {
         try {
           // Send email and password to the first API endpoint
-          await axios.post('http://localhost:5272/Register', {
+          await axios.post('http://localhost:5272/register', {
             email: this.email,
             password: this.password,
-          });
+          })
+
+          await this.addRole();
+          await this.login()
   
           // Send other information and email to the second API endpoint
-          await axios.post('http://localhost:5272/RegisterDetails', {
-            firstname: this.firstname,
-            lastname: this.lastname,
-            city: this.city,
-            zipcode: this.zipcode,
-            email: this.email,
-          });
+          // await axios.post('http://localhost:5272/RegisterDetails', {
+          //   firstname: this.firstname,
+          //   lastname: this.lastname,
+          //   city: this.city,
+          //   zipcode: this.zipcode,
+          //   email: this.email,
+          // });
   
           this.$router.push('/'); // Redirect to home or another component
         } catch (error) {
           this.error = 'Registration failed. Please try again.';
         }
       },
+      async login() {
+        try {
+          const response = await axios.post('http://localhost:5272/Login', {
+            email: this.email,
+            password: this.password,
+          });
+          const token = response.data.accessToken;
+          localStorage.setItem('accessToken', token);
+          this.$router.push('/'); // Redirect to products component
+        } catch (error) {
+          this.error = 'Invalid email or password';
+        }
+      },
+      async addRole() {
+  try {
+    await axios.post('http://localhost:5272/api/Users', {
+      email: this.email,
+    });
+    console.log(this.email)
+  } catch (error) {
+    this.error = 'Failed to add role. Please try again.';
+  }
+},
     },
   };
   </script>

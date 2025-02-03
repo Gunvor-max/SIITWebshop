@@ -54,7 +54,7 @@ export default {
     async fetchProducts(token) {
       this.loading = true;
       try {
-        const response = await axios.get('http://localhost:5272/api/Products', {
+        const response = await axios.get('https://localhost:7040/api/Products', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -1,7 +1,7 @@
 <template>
   <div class="register-container">
     <div class="register-form">
-      <h2>Register</h2>
+      <h2>Register user</h2>
       <form @submit.prevent="register">
         <div class="form-group">
           <label for="firstname">First Name:</label>
@@ -39,6 +39,22 @@
       </form>
       <p v-if="error" class="error-message">{{ error }}</p>
     </div>
+
+    <div class="register-form">
+    <h2>Register admin</h2>
+      <form @submit.prevent="registerAdmin">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" v-model="email" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" v-model="password" required />
+        </div>
+        <button type="submit" class="register-button">Register</button>
+      </form>
+      <p v-if="error" class="error-message">{{ error }}</p>
+      </div>
   </div>
 </template>
 
@@ -63,7 +79,7 @@ export default {
     async register() {
       try {
         // Send email and password to the first API endpoint
-        await axios.post('http://localhost:5272/register', {
+        await axios.post('https://localhost:7040/register', {
           email: this.email,
           password: this.password,
         });
@@ -73,24 +89,37 @@ export default {
 
         // Create the request object
         const person = {
-          id: 0, // Assuming 0 for new user
           firstName: this.firstname,
           lastName: this.lastname,
           email: this.email,
           phoneNumber: this.phoneNumber,
           addressObj: {
-            id: 0, // Assuming 0 for new address
             street: this.street,
             houseNumber: parseInt(this.houseNumber),
             cityObj: {
-              id: 0, // Assuming 0 for new city
               name: this.city,
             },
           },
         };
 
         // Send the request object to the second API endpoint
-        await axios.post('http://localhost:5272/RegisterDetails', person);
+        await axios.post('https://localhost:7040/Users/CreateUser', person);
+
+        this.$router.push('/'); // Redirect to home or another component
+      } catch (error) {
+        this.error = 'Registration failed. Please try again.';
+      }
+    },
+    async registerAdmin() {
+      try {
+        // Send email and password to the first API endpoint
+        await axios.post('https://localhost:7040/register', {
+          email: this.email,
+          password: this.password,
+        });
+
+        await this.addRole();
+        await this.login();
 
         this.$router.push('/'); // Redirect to home or another component
       } catch (error) {
@@ -99,7 +128,7 @@ export default {
     },
     async login() {
       try {
-        const response = await axios.post('http://localhost:5272/Login', {
+        const response = await axios.post('https://localhost:7040/Login', {
           email: this.email,
           password: this.password,
         });
@@ -112,7 +141,7 @@ export default {
     },
     async addRole() {
       try {
-        await axios.post('http://localhost:5272/api/Users', {
+        await axios.post('https://localhost:7040/api/Users', {
           email: this.email,
         });
         console.log(this.email);

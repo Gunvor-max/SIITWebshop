@@ -133,6 +133,7 @@ export default {
           password: this.password,
         });
         const token = response.data.accessToken;
+        localStorage.setItem('userEmail', this.email);
         localStorage.setItem('accessToken', token);
         this.$router.push('/'); // Redirect to products component
       } catch (error) {

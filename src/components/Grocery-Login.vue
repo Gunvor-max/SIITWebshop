@@ -32,12 +32,13 @@
     methods: {
       async login() {
         try {
-          const response = await axios.post('http://localhost:5272/Login', {
+          const response = await axios.post('http://localhost:7040/Login', {
             email: this.email,
             password: this.password,
           });
           const token = response.data.accessToken;
           localStorage.setItem('accessToken', token);
+          localStorage.setItem('userEmail', this.email);
           this.$router.push('/'); // Redirect to products component
         } catch (error) {
           this.error = 'Invalid email or password';

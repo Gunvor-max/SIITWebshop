@@ -77,39 +77,47 @@ export default {
   },
   methods: {
     async register() {
-      try {
-        // Send email and password to the first API endpoint
-        await axios.post('https://localhost:7040/register', {
-          email: this.email,
-          password: this.password,
-        });
+  try {
+    // Step 1: Register the user
+    await axios.post('https://localhost:7040/register', {
+      email: this.email,
+      password: this.password,
+    });
 
-        await this.addRole();
-        await this.login();
+    // Step 2: Add the role
+    await this.addRole();
 
-        // Create the request object
-        const person = {
-          firstName: this.firstname,
-          lastName: this.lastname,
-          email: this.email,
-          phoneNumber: this.phoneNumber,
-          addressObj: {
-            street: this.street,
-            houseNumber: parseInt(this.houseNumber),
-            cityObj: {
-              name: this.city,
-            },
-          },
-        };
+    // Step 3: Create the request object
+    const person = {
+      firstName: this.firstname,
+      lastName: this.lastname,
+      email: this.email,
+      phoneNumber: this.phoneNumber,
+      addressObj: {
+        street: this.street,
+        houseNumber: parseInt(this.houseNumber),
+        cityObj: {
+          name: this.city,
+        },
+      },
+    };
 
-        // Send the request object to the second API endpoint
-        await axios.post('https://localhost:7040/Users/CreateUser', person);
+    // Step 4: Log in the user
+    await this.login();
 
-        this.$router.push('/'); // Redirect to home or another component
-      } catch (error) {
-        this.error = 'Registration failed. Please try again.';
-      }
-    },
+    // Step 5: Send the request object to the second API endpoint
+    await axios.post('https://localhost:7040/api/Users/CreateUser', person, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    });
+
+    // Redirect to user profile component
+    this.$router.push('/UserProfile');
+  } catch (error) {
+    this.error = 'Registration failed. Please try again.';
+  }
+},
     async registerAdmin() {
       try {
         // Send email and password to the first API endpoint
@@ -120,8 +128,6 @@ export default {
 
         await this.addRole();
         await this.login();
-
-        this.$router.push('/'); // Redirect to home or another component
       } catch (error) {
         this.error = 'Registration failed. Please try again.';
       }
@@ -133,9 +139,7 @@ export default {
           password: this.password,
         });
         const token = response.data.accessToken;
-        localStorage.setItem('userEmail', this.email);
         localStorage.setItem('accessToken', token);
-        this.$router.push('/'); // Redirect to products component
       } catch (error) {
         this.error = 'Invalid email or password';
       }

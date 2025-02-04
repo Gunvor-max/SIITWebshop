@@ -63,8 +63,7 @@ export default {
   },
   async created() {
     try {
-      this.email = localStorage.getItem('userEmail'); // Retrieve email from localStorage
-      const response = await axios.get(`https://localhost:7040/api/Users/GetByEmail/${this.email}`, {
+      const response = await axios.get(`https://localhost:7040/api/Users/GetById`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -75,6 +74,7 @@ export default {
       this.street = user.addressObj.street;
       this.houseNumber = user.addressObj.houseNumber;
       this.city = user.addressObj.cityObj.name;
+      this.email = user.email;
       this.phoneNumber = user.phoneNumber;
     } catch (error) {
       this.error = 'Failed to load user profile. Please try again.';

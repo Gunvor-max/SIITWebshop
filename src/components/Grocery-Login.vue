@@ -38,7 +38,6 @@
           });
           const token = response.data.accessToken;
           localStorage.setItem('accessToken', token);
-          localStorage.setItem('userEmail', this.email);
           this.$router.push('/UserProfile'); // Redirect to products component
         } catch (error) {
           this.error = 'Invalid email or password';

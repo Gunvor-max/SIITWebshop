@@ -39,26 +39,13 @@ export default {
     };
   },
   created() {
-    this.checkTokenAndFetchProducts();
+    this.fetchProducts();
   },
   methods: {
-    async checkTokenAndFetchProducts() {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        alert('Access denied. Please log in.');
-        this.$router.push('/login');
-        return;
-      }
-      await this.fetchProducts(token);
-    },
-    async fetchProducts(token) {
+    async fetchProducts() {
       this.loading = true;
       try {
-        const response = await axios.get('https://localhost:7040/api/Products', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get('https://localhost:7040/api/Products');
         this.products = response.data;
         console.log('Fetched products:', this.products);
       } catch (error) {

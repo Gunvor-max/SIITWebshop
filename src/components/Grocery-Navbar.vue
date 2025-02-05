@@ -3,7 +3,7 @@
     <div class="navbar-brand" @click="goToProducts">My Grocery Store</div>
     <div class="navbar-login">
       <div v-if="isLoggedIn" class="dropdown">
-        <button class="dropdown-button">Profile</button>
+        <button class="dropdown-button">{{ firstName }}</button>
         <div class="dropdown-content">
           <button @click="goToProfile">Profile</button>
           <button @click="logout">Logout</button>
@@ -23,10 +23,12 @@ export default {
   data() {
     return {
       isLoggedIn: false,
+      firstName: ''
     };
   },
   created() {
     this.checkLoginStatus();
+    this.firstName = localStorage.getItem('firstName')
   },
   methods: {
     checkLoginStatus() {

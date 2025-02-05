@@ -70,6 +70,7 @@ export default {
       });
       const user = response.data;
       this.firstname = user.firstName;
+      localStorage.setItem('firstName', user.firstName);
       this.lastname = user.lastName;
       this.street = user.addressObj.street;
       this.houseNumber = user.addressObj.houseNumber;

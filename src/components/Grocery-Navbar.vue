@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar">
-    <div class="navbar-brand" @click="goToProducts">My Grocery Store</div>
+    <div class="navbar-brand" @click="goToProducts">Online indkøb</div>
     <div class="navbar-login">
       <div v-if="isLoggedIn" class="dropdown">
         <button class="dropdown-button">{{ firstName }}</button>
@@ -11,7 +11,7 @@
       </div>
       <div v-else>
         <button class="login-button" @click="goToLogin">Login</button>
-        <button class="register-button" @click="goToRegister">Register</button>
+        <button class="register-button" @click="goToRegister">Opret bruger</button>
       </div>
     </div>
   </nav>

@@ -31,18 +31,32 @@
     },
     methods: {
       async login() {
-        try {
-          const response = await axios.post('https://localhost:7040/Login', {
-            email: this.email,
-            password: this.password,
-          });
-          const token = response.data.accessToken;
-          localStorage.setItem('accessToken', token);
-          this.$router.push('/UserProfile'); // Redirect to products component
-        } catch (error) {
-          this.error = 'Invalid email or password';
+  try {
+    const response = await axios.post('https://localhost:7040/Login', {
+      email: this.email,
+      password: this.password,
+    });
+    const token = response.data.accessToken;
+    localStorage.setItem('accessToken', token);
+    this.$router.push('/UserProfile'); // Redirect to user profile component
+  } catch (error) {
+    if (error.response) {
+      // Server responded with a status code outside the 2xx range
+      if (error.response.status === 401) {
+        if (error.response.data.detail === "LockedOut") {
+          this.error = 'Din konto er midlertidigt låst grundet for mange login forsøg';
+        } else {
+          this.error = 'Forkert email eller password.';
         }
-      },
+      } else {
+        this.error = 'Login fejlede.';
+      }
+    } else {
+      // No response from the server
+      this.error = 'Kunne ikke etablere forbindelse til serveren. Prøv igen senere.';
+    }
+  }
+},
     },
   };
   </script>

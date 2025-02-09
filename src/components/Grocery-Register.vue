@@ -136,8 +136,8 @@ export default {
         this.pasometerNumber += 33;
         this.pasometerNumber += this.checkPasswordStrength(this.password);
         if(this.checkPasswordStrength(this.password) == 33){
-          this.pasometerNumber += additionalChars * 5;
           const additionalChars = passlength - 11;
+          this.pasometerNumber += additionalChars * 5;
         }
       }
     },

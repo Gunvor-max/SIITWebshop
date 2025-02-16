@@ -109,9 +109,6 @@ export default {
           },
         };
 
-        // Step 4: Log in the user
-        await this.login();
-
         // Step 5: Send the request object to the second API endpoint
         await axios.post('https://localhost:7040/api/Users/CreateUser', person, {
           headers: {
@@ -120,7 +117,7 @@ export default {
         });
 
         // Redirect to user profile component
-        this.$router.push('/UserProfile');
+        this.$router.push('/EmailConfirmation');
       } catch (error) {
         this.error = 'Registration failed. Please try again.';
       }
@@ -150,7 +147,7 @@ export default {
         });
 
         await this.addRole();
-        await this.login();
+        this.$router.push('/EmailConfirmation');
       } catch (error) {
         this.error = 'Registration failed. Please try again.';
       }

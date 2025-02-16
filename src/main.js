@@ -5,12 +5,14 @@ import GroceryLogin from './components/Grocery-Login.vue';
 import GroceryProducts from './components/Grocery-Products.vue';
 import GroceryRegister from './components/Grocery-Register.vue';
 import GroceryUserProfile from './components/Grocery-UserProfile.vue';
+import GroceryEmailConfirmation from './components/Grocery-EmailConfirmation.vue';
 
 const routes = [
   { path: '/', component: GroceryProducts },
   { path: '/login', component: GroceryLogin },
   { path: '/register', component: GroceryRegister },
   { path: '/UserProfile', component: GroceryUserProfile },
+  { path: '/EmailConfirmation', component: GroceryEmailConfirmation },
   // Add other routes here
 ];
 

@@ -12,6 +12,7 @@
       <div v-else>
         <button class="login-button" @click="goToLogin">Login</button>
         <button class="register-button" @click="goToRegister">Opret bruger</button>
+        <button @click="goToBasket">Kurv</button>
       </div>
     </div>
   </nav>
@@ -53,6 +54,9 @@ export default {
     },
     goToProfile() {
       this.$router.push('/UserProfile');
+    },
+    goToBasket() {
+      this.$router.push('/Basket');
     },
     logout() {
       localStorage.removeItem('accessToken');

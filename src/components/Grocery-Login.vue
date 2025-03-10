@@ -32,12 +32,19 @@
     methods: {
       async login() {
   try {
-    const response = await axios.post('https://localhost:7040/Login', {
+    const response = await axios.post('https://localhost:7040/api/Users/Login', {
       email: this.email,
-      password: this.password,
+      password: this.password
+    }, {
+      params: {
+        useCookies: true
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      withCredentials: true
     });
-    const token = response.data.accessToken;
-    localStorage.setItem('accessToken', token);
+    console.log(response.status);
     this.$router.push('/UserProfile'); // Redirect to user profile component
   } catch (error) {
     if (error.response) {

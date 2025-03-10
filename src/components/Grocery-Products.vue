@@ -14,7 +14,7 @@
             <p><strong>Pris:</strong> {{ formatCurrency(product.price) }}</p>
             <p v-if="product.stock"><strong>Lagerbeholdning:</strong> {{ product.stock.quantity }}</p>
             <p v-if="product.stock"><strong>Sidst købt:</strong> {{ new Date(product.stock.lastpurchased).toLocaleDateString() }}</p>
-            <button class="add-to-cart">
+            <button class="add-to-cart" @click="addToBasket(product)">
               <i class="fas fa-shopping-cart"></i>
             </button>
           </div>
@@ -29,8 +29,10 @@
 
 <script>
 import axios from 'axios';
+import { useStore } from 'vuex';
+import { defineComponent } from 'vue';
 
-export default {
+export default defineComponent({
   name: 'Grocery-Products',
   data() {
     return {
@@ -55,11 +57,24 @@ export default {
       }
     },
     formatCurrency(value) {
-      return `${value.toFixed(2)} kr.`;
+      return `${value.toFixed(2)} kr`;
     },
   },
-};
+  setup() {
+    const store = useStore();
+    const addToBasket = (product) => {
+      console.log('Adding to basket from products:', product);
+      store.dispatch('addToBasket', product);
+    };
+    return {
+      addToBasket,
+    };
+  },
+});
 </script>
+
+
+
 
 <style scoped>
 .product-grid {

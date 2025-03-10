@@ -63,11 +63,9 @@ export default {
   },
   async created() {
     try {
-      const response = await axios.get(`https://localhost:7040/api/Users/GetById`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-      });
+      const response = await axios.get('https://localhost:7040/api/Users/GetById', {
+  withCredentials: true // Ensure credentials (cookies) are sent with the request
+});
       const user = response.data;
       this.firstname = user.firstName;
       localStorage.setItem('firstName', user.firstName);

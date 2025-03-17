@@ -3,8 +3,8 @@
     <h1>Produkter</h1>
     <div v-if="loading">Indlæser...</div>
     <div v-else>
-      <div v-if="products.length" class="product-grid">
-        <div class="product-card" v-for="product in products" :key="product.id">
+      <div v-if="productList.length" class="product-grid">
+        <div class="product-card" v-for="product in productList" :key="product.varenummer">
           <div class="product-image" :style="{ backgroundImage: `url(${product.url})` }"></div>
           <div class="product-info">
             <h2>{{ product.name }}</h2>
@@ -14,67 +14,66 @@
             <p><strong>Pris:</strong> {{ formatCurrency(product.price) }}</p>
             <p v-if="product.stock"><strong>Lagerbeholdning:</strong> {{ product.stock.quantity }}</p>
             <p v-if="product.stock"><strong>Sidst købt:</strong> {{ new Date(product.stock.lastpurchased).toLocaleDateString() }}</p>
-            <button class="add-to-cart" @click="addToBasket(product)">
+            <button class="add-to-cart" @click="reserveProduct(product.varenummer)">
               <i class="fas fa-shopping-cart"></i>
             </button>
           </div>
         </div>
       </div>
-      <div v-else>
-        Ingen produkter tilgængelige.
+      <div v-if="statusCode === 204">
+        Produktet kan ikke findes
+      </div>
+      <div v-if="statusCode === 0">
+        Ingen forbindelse til serveren
       </div>
     </div>
   </div>
 </template>
 
+
 <script>
-import axios from 'axios';
-import { useStore } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name: 'Grocery-Products',
+  name: 'ProductPage',
   data() {
     return {
-      products: [],
-      loading: true,
+      loading: true, // Local loading state
     };
   },
+  computed: {
+    ...mapGetters(['productList','statusCode']), // Get products from Vuex
+  },
   created() {
-    this.fetchProducts();
+    this.loadProducts(); // Fetch products when the component is created
   },
   methods: {
-    async fetchProducts() {
-      this.loading = true;
+    ...mapActions(['fetchAllProducts', 'reserveProduct']), // Map Vuex actions
+    async loadProducts() {
       try {
-        const response = await axios.get('https://localhost:7040/api/Products');
-        this.products = response.data;
-        console.log('Fetched products:', this.products);
+        this.loading = true;
+        await this.fetchAllProducts(); 
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error loading products:', error);
       } finally {
         this.loading = false;
       }
     },
-    formatCurrency(value) {
-      return `${value.toFixed(2)} kr`;
+    async reserveProduct(productId) {
+      try {
+        console.log('Reserving product from product page:', productId);
+        await this.$store.dispatch('reserveProduct', productId); // Dispatch Vuex action
+      } catch (error) {
+        console.error('Error reserving product:', error);
+      }
     },
-  },
-  setup() {
-    const store = useStore();
-    const addToBasket = (product) => {
-      console.log('Adding to basket from products:', product);
-      store.dispatch('addToBasket', product);
-    };
-    return {
-      addToBasket,
-    };
+    formatCurrency(value) {
+      return `${value.toFixed(2)} kr`; // Format currency
+    },
   },
 });
 </script>
-
-
-
 
 <style scoped>
 .product-grid {

@@ -1,6 +1,18 @@
 <template>
   <nav class="navbar">
     <div class="navbar-brand" @click="goToProducts">Online indkøb</div>
+    <div class="navbar-search">
+      <input
+        type="text"
+        v-model="searchQuery"
+        @keydown.enter="searchProducts"
+        placeholder="Søg efter produkter"
+        class="search-input"
+      />
+      <button @click="searchProducts" class="search-button">
+        <i class="fa fa-search"></i>
+      </button>
+    </div>
     <div class="navbar-login">
       <div v-if="isLoggedIn" class="dropdown">
         <button class="dropdown-button">{{ firstName }}</button>
@@ -12,42 +24,57 @@
       <div v-else>
         <button class="login-button" @click="goToLogin">Login</button>
         <button class="register-button" @click="goToRegister">Opret bruger</button>
-        <button @click="goToBasket">Kurv</button>
+        <button class="basket-button" @click="goToBasket">
+          <i class="fas fa-shopping-cart"></i>
+          ({{ basketItemCount }})
+        </button>
       </div>
     </div>
   </nav>
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex';
+
 export default {
   name: 'Grocery-Navbar',
   data() {
     return {
       isLoggedIn: false,
-      firstName: ''
+      firstName: '',
+      searchQuery: '',
     };
+  },
+  computed: {
+    ...mapGetters(['basketItemCount']), // Map the basketItemCount getter to the component
   },
   created() {
     this.checkLoginStatus();
-    this.firstName = localStorage.getItem('firstName')
+    this.firstName = localStorage.getItem('firstName');
   },
   methods: {
+    ...mapActions(['fetchSearchedProducts', 'fetchAllProducts']),
+    async searchProducts() {
+      try {
+        if (this.searchQuery.trim() === '') {
+          await this.fetchAllProducts();
+        } else {
+          await this.fetchSearchedProducts(this.searchQuery);
+        }
+      } catch (error) {
+        console.error('Error searching products:', error);
+      }
+    },
     checkLoginStatus() {
       const token = localStorage.getItem('accessToken');
       this.isLoggedIn = !!token;
-    },
-    handleAuth() {
-      if (this.isLoggedIn) {
-        this.logout();
-      } else {
-        this.goToLogin();
-      }
     },
     goToLogin() {
       this.$router.push('/login');
     },
     goToProducts() {
-      this.$router.push('/');
+      const timestamp = Date.now();
+      this.$router.push({ path: '/', query: { reload: timestamp } });
     },
     goToRegister() {
       this.$router.push('/register');
@@ -62,11 +89,6 @@ export default {
       localStorage.removeItem('accessToken');
       this.isLoggedIn = false;
       this.$router.push('/login');
-    },
-  },
-  watch: {
-    '$route'() {
-      this.checkLoginStatus();
     },
   },
 };
@@ -87,7 +109,40 @@ export default {
   cursor: pointer;
 }
 
+.navbar-search {
+  display: flex; /* Added to make it a flex container */
+  align-items: center; /* Align items vertically */
+  gap: 8px; /* Optional: adds spacing between the input and button */
+}
+
+.navbar-search .search-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.navbar-search .search-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-search .search-button:hover {
+  background-color: #45a049;
+}
+
+.navbar-search .search-button i {
+  font-size: 16px;
+}
+
 .navbar-login .login-button,
+.navbar-login .basket-button,
 .navbar-login .register-button {
   background-color: #4CAF50;
   color: white;
@@ -98,6 +153,7 @@ export default {
 }
 
 .navbar-login .login-button:hover,
+.navbar-login .basket-button:hover,
 .navbar-login .register-button:hover {
   background-color: #45a049;
 }

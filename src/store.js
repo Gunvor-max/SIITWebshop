@@ -1,15 +1,28 @@
 import { createStore } from 'vuex';
-import { fetchBasket, reserveAndGetBasket, removeAndGetBasket, fetchAllProducts, fetchSearchedProducts } from './productService';
+import { fetchBasket, reserveAndGetBasket, removeAndGetBasket, fetchAllProducts, fetchSearchedProducts, checkLogin } from './productService';
 
 const store = createStore({
   state: {
     basket: [],
     products: [], // Store the fetched products
     statusCode: null, // Store the status code
+    isLoggedIn: false,
   },
   mutations: {
+    SET_LOGIN_STATUS(state, status) {
+      state.isLoggedIn = status;
+    },
     SET_BASKET(state, basket) {
-      state.basket = basket;
+      const groupedBasket = [];
+      basket.forEach((item) => {
+        const existingItem = groupedBasket.find((i) => i.varenummer === item.varenummer);
+        if (existingItem) {
+          existingItem.quantity = (existingItem.quantity || 1) + (item.quantity || 1);
+        } else {
+          groupedBasket.push({ ...item, quantity: item.quantity || 1 });
+        }
+      });
+      state.basket = groupedBasket;
     },
     SET_PRODUCTS(state, products) {
       state.products = products; // Update the products in Vuex state
@@ -27,6 +40,16 @@ const store = createStore({
     },
   },
   actions: {
+    async checkLogin({ commit }) {
+      try {
+        const response = await checkLogin();
+        console.log('Response from API:', response); // Debugging
+        commit('SET_LOGIN_STATUS', response); // Commit the actual boolean value
+      } catch (error) {
+        console.error('Error during login check:', error);
+        commit('SET_LOGIN_STATUS', false); // Ensure fallback to false
+      }
+    },    
     async fetchAllProducts({ commit }) {
       try {
         const response = await fetchAllProducts(); // Call the service function
@@ -53,7 +76,16 @@ const store = createStore({
     async fetchBasket({ commit }) {
       try {
         const basketData = await fetchBasket();
-        commit('SET_BASKET', basketData);
+        const groupedBasket = [];
+        basketData.forEach((item) => {
+          const existingItem = groupedBasket.find((i) => i.varenummer === item.varenummer);
+          if (existingItem) {
+            existingItem.quantity = (existingItem.quantity || 1) + (item.quantity || 1);
+          } else {
+            groupedBasket.push({ ...item, quantity: item.quantity || 1 });
+          }
+        });
+        commit('SET_BASKET', groupedBasket);
       } catch (error) {
         console.error('Error fetching basket:', error);
       }
@@ -96,6 +128,7 @@ const store = createStore({
         : 0,
     productList: (state) => state.products, // Getter for the products
     statusCode: (state) => state.statusCode,
+    isLoggedIn: (state) => state.isLoggedIn,
   },
 });
 

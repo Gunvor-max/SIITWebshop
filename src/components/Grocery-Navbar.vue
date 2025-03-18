@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar">
-    <div class="navbar-brand" @click="goToProducts">Online indkøb</div>
+    <div class="navbar-brand" @click="goToProducts">Online Indkøb</div>
     <div class="navbar-search">
       <input
         type="text"
@@ -13,47 +13,56 @@
         <i class="fa fa-search"></i>
       </button>
     </div>
-    <div class="navbar-login">
-      <div v-if="isLoggedIn" class="dropdown">
+    <div v-if="isLoggedIn" class="navbar-login">
+      <!-- Dropdown is its own container -->
+      <div class="dropdown">
         <button class="dropdown-button">{{ firstName }}</button>
         <div class="dropdown-content">
           <button @click="goToProfile">Profile</button>
           <button @click="logout">Logout</button>
         </div>
       </div>
-      <div v-else>
-        <button class="login-button" @click="goToLogin">Login</button>
-        <button class="register-button" @click="goToRegister">Opret bruger</button>
-        <button class="basket-button" @click="goToBasket">
-          <i class="fas fa-shopping-cart"></i>
-          ({{ basketItemCount }})
-        </button>
-      </div>
+      <!-- Basket button is separate -->
+      <button class="basket-button" @click="goToBasket">
+        <i class="fas fa-shopping-cart"></i> ({{ basketItemCount }})
+      </button>
+    </div>
+    <div v-else class="navbar-logout">
+      <!-- Separate container for login and register buttons -->
+      <button class="login-button" @click="goToLogin">Login</button>
+      <button class="register-button" @click="goToRegister">Opret Bruger</button>
     </div>
   </nav>
 </template>
 
+
 <script>
-import { mapGetters, mapActions } from 'vuex';
+import { mapActions, mapState, mapGetters } from 'vuex';
+import axios from 'axios'
 
 export default {
   name: 'Grocery-Navbar',
   data() {
     return {
-      isLoggedIn: false,
-      firstName: '',
       searchQuery: '',
+      isDropdownVisible: false, // State to toggle dropdown visibility
     };
   },
   computed: {
-    ...mapGetters(['basketItemCount']), // Map the basketItemCount getter to the component
+    ...mapState(['isLoggedIn']), // Accessing the isLoggedIn state directly
+    ...mapGetters(['basketItemCount']), // Fetching basket item count from Vuex getters
+    firstName() {
+      return localStorage.getItem('firstName'); // Pull first name directly from local storage
+    },
   },
   created() {
-    this.checkLoginStatus();
-    this.firstName = localStorage.getItem('firstName');
+    this.$store.dispatch('checkLogin'); // Validate login status when component is created
   },
   methods: {
     ...mapActions(['fetchSearchedProducts', 'fetchAllProducts']),
+    toggleDropdown() {
+      this.isDropdownVisible = !this.isDropdownVisible; // Toggle visibility state
+    },
     async searchProducts() {
       try {
         if (this.searchQuery.trim() === '') {
@@ -65,16 +74,11 @@ export default {
         console.error('Error searching products:', error);
       }
     },
-    checkLoginStatus() {
-      const token = localStorage.getItem('accessToken');
-      this.isLoggedIn = !!token;
-    },
     goToLogin() {
       this.$router.push('/login');
     },
     goToProducts() {
-      const timestamp = Date.now();
-      this.$router.push({ path: '/', query: { reload: timestamp } });
+      this.$router.push({ path: '/' });
     },
     goToRegister() {
       this.$router.push('/register');
@@ -85,16 +89,29 @@ export default {
     goToBasket() {
       this.$router.push('/Basket');
     },
-    logout() {
-      localStorage.removeItem('accessToken');
-      this.isLoggedIn = false;
-      this.$router.push('/login');
-    },
+    async logout() {
+  try {
+    // Make a request to the backend to clear the session and cookies
+    await axios.post('https://localhost:7040/api/Users/Logout', {}, {
+      withCredentials: true, // Include cookies in the request
+    });
+
+    // Clear local storage and Vuex state
+    localStorage.removeItem('accessToken');
+    this.$store.commit('SET_LOGIN_STATUS', false);
+
+    // Redirect to the login page
+    this.$router.push('/login');
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
+},
   },
 };
 </script>
 
 <style scoped>
+/* Common navbar styles */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -110,9 +127,9 @@ export default {
 }
 
 .navbar-search {
-  display: flex; /* Added to make it a flex container */
-  align-items: center; /* Align items vertically */
-  gap: 8px; /* Optional: adds spacing between the input and button */
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .navbar-search .search-input {
@@ -128,36 +145,46 @@ export default {
   padding: 8px 16px;
   cursor: pointer;
   border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.navbar-search .search-button:hover {
-  background-color: #45a049;
-}
-
-.navbar-search .search-button i {
-  font-size: 16px;
-}
-
-.navbar-login .login-button,
-.navbar-login .basket-button,
-.navbar-login .register-button {
+/* Navbar login/logout container styles */
+.navbar-login .basket-button {
+  margin-left: 16px; /* Consistent spacing for basket */
   background-color: #4CAF50;
   color: white;
   border: none;
   padding: 8px 16px;
   cursor: pointer;
   border-radius: 4px;
+  transition: background-color 0.3s ease;
 }
 
-.navbar-login .login-button:hover,
-.navbar-login .basket-button:hover,
-.navbar-login .register-button:hover {
+.navbar-login .basket-button:hover {
   background-color: #45a049;
 }
 
+.navbar-logout .login-button,
+.navbar-logout .register-button {
+  /* Consistent styles for non-logged-in buttons */
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.navbar-logout .register-button {
+  margin-left: 16px; /* Add consistent spacing between the buttons */
+}
+
+.navbar-logout .login-button:hover,
+.navbar-logout .register-button:hover {
+  background-color: #45a049;
+}
+
+/* Dropdown-specific styles */
 .dropdown {
   position: relative;
   display: inline-block;
@@ -177,7 +204,7 @@ export default {
   position: absolute;
   background-color: #f9f9f9;
   min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1;
 }
 
@@ -190,12 +217,14 @@ export default {
   border: none;
   width: 100%;
   text-align: left;
+  cursor: pointer;
 }
 
 .dropdown-content button:hover {
   background-color: #f1f1f1;
 }
 
+/* Ensure only the dropdown button triggers hover */
 .dropdown:hover .dropdown-content {
   display: block;
 }
@@ -204,3 +233,8 @@ export default {
   background-color: #45a049;
 }
 </style>
+
+
+
+
+

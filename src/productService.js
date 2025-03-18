@@ -1,5 +1,17 @@
 import axios from "axios";
 
+export async function checkLogin() {
+  try {
+    const response = await axios.get('https://localhost:7040/api/Users/ValidateLoginAndSession', {
+      withCredentials: true, // Include session cookies
+    });
+    return response.data; // Return the fetched basket data
+  } catch (error) {
+    console.error('Error fetching basket:', error);
+    throw error; // Pass the error up the chain
+  }
+}
+
 export async function reserveAndGetBasket(productId) {
   try {
     const response = await axios.get(

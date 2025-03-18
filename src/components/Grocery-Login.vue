@@ -44,6 +44,8 @@
       },
       withCredentials: true
     });
+    await this.$store.dispatch('checkLogin');
+
     console.log(response.status);
     this.$router.push('/UserProfile'); // Redirect to user profile component
   } catch (error) {

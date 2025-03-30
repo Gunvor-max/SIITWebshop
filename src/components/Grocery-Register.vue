@@ -1,5 +1,15 @@
 <template>
   <div class="register-container">
+     <!-- Dialog Box -->
+     <div v-if="isChecking" class="confirmation-dialog">
+        <div class="dialog-content">
+          <h2>Tak for din oprettelse</h2>
+          <p>En bekræftelsesmail er blevet sendt til din email.</p>
+          <div class="loading-icon">
+            <i class="fas fa-spinner fa-spin dynamic-loading-icon"></i>
+          </div>
+        </div>
+      </div>
     <div class="register-form">
       <h2>Register user</h2>
       <form @submit.prevent="register">
@@ -42,25 +52,6 @@
       </form>
       <p v-if="error" class="error-message">{{ error }}</p>
     </div>
-
-    <div class="register-form">
-      <h2>Register admin</h2>
-      <form @submit.prevent="registerAdmin">
-        <div class="form-group">
-          <label for="email">Email:</label>
-          <input type="email" v-model="email" required />
-        </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" v-model="password" @input="passometer" required />
-          <div v-if="password" class="password-strength-bar" :class="strengthClass">
-            <span>{{ strengthText }}</span>
-          </div>
-        </div>
-        <button type="submit" class="register-button">Register</button>
-      </form>
-      <p v-if="error" class="error-message">{{ error }}</p>
-    </div>
   </div>
 </template>
 
@@ -80,6 +71,8 @@ export default {
       password: '',
       error: null,
       pasometerNumber: 0,
+      isChecking: false,
+      checkInterval: null,
     };
   },
   methods: {
@@ -94,7 +87,59 @@ export default {
         // Step 2: Add the role
         await this.addRole();
 
-        // Step 3: Create the request object
+        // Step 3: Show the loading dialog and start polling for email confirmation
+        this.isChecking = true;
+        this.startPollingEmailConfirmation();
+      } catch (error) {
+        this.error = 'Registration failed. Please try again.';
+      }
+    },
+    startPollingEmailConfirmation() {
+      this.checkInterval = setInterval(async () => {
+        try {
+          const response = await axios.post(
+  'https://localhost:7040/api/Users/CheckIfConfirmedEmail',
+  {
+    email: this.email,
+  }
+);
+          // If email is confirmed, stop polling and log in the user
+          if (response.data === true) {
+            clearInterval(this.checkInterval);
+            this.isChecking = false;
+            await this.login();
+          }
+        } catch (error) {
+          console.error('Error checking email confirmation:', error);
+        }
+      }, 5000); // Poll every 5 seconds
+    },
+    async login() {
+  try {
+    const response = await axios.post('https://localhost:7040/api/Users/Login', {
+      email: this.email,
+      password: this.password
+    }, {
+      params: {
+        useCookies: true
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      withCredentials: true
+    });
+    // Call the CreateUser endpoint after successful login
+    await this.createUser();
+    await this.$store.dispatch('checkLogin');
+    // Redirect to user profile page
+    console.log(response)
+    this.$router.push('/UserProfile');
+      } catch (error) {
+        this.error = 'Invalid email or password';
+      }
+    },
+    async createUser() {
+      try {
         const person = {
           firstName: this.firstname,
           lastName: this.lastname,
@@ -109,59 +154,26 @@ export default {
           },
         };
 
-        // Step 5: Send the request object to the second API endpoint
+        // Create the user after login
         await axios.post('https://localhost:7040/api/Users/CreateUser', person, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          },
+          withCredentials: true,
         });
-
-        // Redirect to user profile component
-        this.$router.push('/EmailConfirmation');
       } catch (error) {
-        this.error = 'Registration failed. Please try again.';
+        this.error = 'Failed to create user. Please try again.';
       }
     },
     passometer() {
       this.pasometerNumber = 0;
-      // LengthOfPassword
-      var passlength = this.password.length;
-      if (passlength < 11){
+      const passlength = this.password.length;
+      if (passlength < 11) {
         this.pasometerNumber = 0;
-      }
-      else {
+      } else {
         this.pasometerNumber += 33;
         this.pasometerNumber += this.checkPasswordStrength(this.password);
-        if(this.checkPasswordStrength(this.password) == 33){
+        if (this.checkPasswordStrength(this.password) === 33) {
           const additionalChars = passlength - 11;
           this.pasometerNumber += additionalChars * 5;
         }
-      }
-    },
-    async registerAdmin() {
-      try {
-        // Send email and password to the first API endpoint
-        await axios.post('https://localhost:7040/register', {
-          email: this.email,
-          password: this.password,
-        });
-
-        await this.addRole();
-        this.$router.push('/EmailConfirmation');
-      } catch (error) {
-        this.error = 'Registration failed. Please try again.';
-      }
-    },
-    async login() {
-      try {
-        const response = await axios.post('https://localhost:7040/Login', {
-          email: this.email,
-          password: this.password,
-        });
-        const token = response.data.accessToken;
-        localStorage.setItem('accessToken', token);
-      } catch (error) {
-        this.error = 'Invalid email or password';
       }
     },
     async addRole() {
@@ -198,7 +210,7 @@ export default {
   },
   computed: {
     strengthClass() {
-      if (this.pasometerNumber == 0) {
+      if (this.pasometerNumber === 0) {
         return 'notallowed';
       } else if (this.pasometerNumber <= 32) {
         return 'weak';
@@ -209,10 +221,9 @@ export default {
       }
     },
     strengthText() {
-      if (this.pasometerNumber == 0) {
+      if (this.pasometerNumber === 0) {
         return 'password skal være minimum 12 tegn';
-      }
-        else if (this.pasometerNumber <= 32) {
+      } else if (this.pasometerNumber <= 32) {
         return 'svagt';
       } else if (this.pasometerNumber <= 65) {
         return 'middel';
@@ -222,6 +233,7 @@ export default {
     },
   },
 };
+
 </script>
 
 <style scoped>
@@ -317,4 +329,36 @@ html, body {
   color: red;
   margin-top: 10px;
 }
+
+.confirmation-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.dialog-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.loading-icon img {
+  width: 50px;
+  height: 50px;
+  margin-top: 20px;
+}
+.dynamic-loading-icon {
+  font-size: 50px; 
+  color: blue; 
+}
+
 </style>

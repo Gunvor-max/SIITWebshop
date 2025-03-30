@@ -57,6 +57,7 @@ export default {
   },
   created() {
     this.$store.dispatch('checkLogin'); // Validate login status when component is created
+
   },
   methods: {
     ...mapActions(['fetchSearchedProducts', 'fetchAllProducts']),
@@ -97,7 +98,7 @@ export default {
     });
 
     // Clear local storage and Vuex state
-    localStorage.removeItem('accessToken');
+    localStorage.removeItem('firstName');
     this.$store.commit('SET_LOGIN_STATUS', false);
 
     // Redirect to the login page
